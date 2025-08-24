@@ -154,6 +154,32 @@
       const calendarCSVHeaders = ["주차","요일","식사창","시간","메뉴","비고"];
       const calendarCSVRows = calendarCsv.map(r=>({"주차":r.week,"요일":r.day,"식사창":r.window,"시간":r.time,"메뉴":r.menu,"비고":r.note}));
 
+      // 스크롤 이동 도우미
+      const slugify = (s) => 'recipe-' + encodeURIComponent(String(s||'').trim().toLowerCase());
+      const recipeSlugByName = useMemo(()=>{
+        const map = new Map();
+        recipes.forEach(r => map.set(r.name, slugify(r.name)));
+        return map;
+      }, [recipes]);
+      const getRecipeName = (title, detail) => {
+        const t = String(title||'');
+        if (t.startsWith('[샐러드] ') || t.startsWith('[샌드] ')){
+          const idx = t.indexOf('] ');
+          return idx>0 ? t.slice(idx+2) : '';
+        }
+        if (t.startsWith('그릭요거트')) return String(detail||'');
+        return '';
+      };
+      const scrollToSlug = (slug) => {
+        if(!slug) return;
+        const el = document.getElementById(slug);
+        if(el){
+          el.scrollIntoView({ behavior:'smooth', block:'start' });
+          el.classList.add('ring-2','ring-emerald-500');
+          setTimeout(()=> el.classList.remove('ring-2','ring-emerald-500'), 1600);
+        }
+      };
+
       return React.createElement('div', {className:'min-h-screen'}, [
         React.createElement('header', {key:'hdr', className:'sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-zinc-900/70 border-b border-zinc-800'},
           React.createElement('div', {className:'mx-auto max-w-6xl px-4 py-3 flex items-center gap-3'}, [
@@ -193,7 +219,7 @@
                       React.createElement('td', {className:'p-3 align-top', rowSpan:d.meals.length}, d.window),
                     ] : []),
                     React.createElement('td', {className:'p-3 align-top whitespace-nowrap'}, m.time),
-                    React.createElement('td', {className:'p-3 align-top'}, [React.createElement('span', {className:'font-medium'}, m.title), React.createElement('div', {className:'text-zinc-400'}, m.detail)]),
+                    React.createElement('td', {className:'p-3 align-top'}, [React.createElement('span', {className:'font-medium cursor-pointer hover:underline', onClick:()=>{ const name=getRecipeName(m.title,m.detail); scrollToSlug(recipeSlugByName.get(name)); }}, m.title), React.createElement('div', {className:'text-zinc-400'}, m.detail)]),
                     ...(j===0 ? [React.createElement('td', {className:'p-3 align-top', rowSpan:d.meals.length}, d.note ?? '')] : []),
                   ])
                 ))))
@@ -301,7 +327,7 @@
               ])
             ]),
             React.createElement('div', {className:'grid grid-cols-1 md:grid-cols-2 gap-3'}, filteredRecipes.map((r,i) => (
-              React.createElement('div', {key:i, className:'rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4'}, [
+              React.createElement('div', {key:i, id: slugify(r.name), className:'rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4'}, [
                 React.createElement('div', {className:'flex items-center justify_between gap-2 mb-1'.replace('_','-')}, [
                   React.createElement('div', {className:'flex items-center gap-2'}, [React.createElement(Badge, null, r.category), React.createElement('h3', {className:'font-semibold text-base'}, r.name)]),
                   React.createElement(Badge, null, `${r.proteinTarget} g 단백질`)
