@@ -9,7 +9,7 @@
   <!-- Tailwind (Play CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>html,body,#root{height:100%}
-@media print{header{position:static!important}table{break-inside:avoid;page-break-inside:avoid}section{break-inside:avoid}}
+@media print{header{position:static!important}table{break-inside:avoid;page-break-inside:avoid}section{break-inside:avoid} .print-break{page-break-before:always} .no-break{page-break-inside:avoid} .pb-print{padding-bottom:12mm} .pt-print{padding-top:8mm}}
   </style>
 </head>
 <body class="bg-zinc-900 text-zinc-100">
@@ -169,27 +169,6 @@
         ),
 
         React.createElement('main', {key:'main', className:'mx-auto max-w-6xl px-4 py-6 grid gap-8'}, [
-          React.createElement('section', {key:'ov', className:'grid gap-3'},
-            React.createElement('div', {className:'grid grid-cols-1 md:grid-cols-4 gap-3'}, [
-              React.createElement('div', {className:'rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4', key:'ov1'}, [
-                React.createElement('h3', {className:'font-semibold flex items-center gap-2 mb-1'}, [React.createElement(Clock, {size:16, className:'text-emerald-400', key:'i'}), '식사창']),
-                React.createElement('p', {className:'text-sm text-zinc-300'}, '평일 ', React.createElement('b', null, '10:00–18:00'), ' (10시 샌드·15시 요거트·17:15 샐러드)', React.createElement('br'), '주말 ', React.createElement('b', null, '12:00–20:00'), ' (점심 샌드·저녁 자유식)')
-              ]),
-              React.createElement('div', {className:'rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4', key:'ov2'}, [
-                React.createElement('h3', {className:'font-semibold flex items-center gap-2 mb-1'}, [React.createElement(Flame, {size:16, className:'text-emerald-400', key:'i'}), '운동']),
-                React.createElement('p', {className:'text-sm text-zinc-300'}, '06:00 공복 운동 · 05:30 물+전해질 500–1000mg · 블랙커피')
-              ]),
-              React.createElement('div', {className:'rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4', key:'ov3'}, [
-                React.createElement('h3', {className:'font-semibold flex items-center gap-2 mb-1'}, [React.createElement(CheckCircle, {size:16, className:'text-emerald-400', key:'i'}), '목표']),
-                React.createElement('p', {className:'text-sm text-zinc-300'}, '단백질 ', React.createElement('b', null, '130–170g/일'), ', 식이섬유 30g+, 채소 400–600g/일')
-              ]),
-              React.createElement('div', {className:'rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4', key:'ov4'}, [
-                React.createElement('h3', {className:'font-semibold flex items-center gap-2 mb-1'}, [React.createElement(Info, {size:16, className:'text-emerald-400', key:'i'}), '연어(회)']),
-                React.createElement('p', {className:'text-sm text-zinc-300'}, '반드시 ', React.createElement('b', null, '사시미용(급속냉동)'), '만 사용 · ', React.createElement('b', null, '당일 섭취'), ' (남으면 익일 점심까지만)')
-              ])
-            ])
-          ),
-
           React.createElement('section', {key:'cal', className:'grid gap-3'}, [
             React.createElement('div', {className:'flex items-center justify-between gap-3'}, [
               React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(Soup, {className:'text-emerald-400', key:'i'}), '주간 캘린더']),
@@ -235,6 +214,73 @@
                     React.createElement('td', {className:'p-3'}, g.item),
                     React.createElement('td', {className:'p-3'}, g.qty),
                     React.createElement('td', {className:'p-3 text-zinc-400'}, g.memo),
+                  ])
+                )))
+              ]))
+          ]),
+
+          React.createElement('section', {key:'purchase', className:'grid gap-3'}, [
+            React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(ShoppingBasket, {className:'text-emerald-400', key:'i'}), '주간 구매/보충 스케줄']),
+            React.createElement('div', {className:'rounded-2xl border border-zinc-800 overflow-hidden'},
+              React.createElement('table', {className:'w-full text-sm'}, [
+                React.createElement('thead', {className:'bg-zinc-800/50', key:'th'}, React.createElement('tr', null, [
+                  React.createElement('th', {className:'p-3 text-left'}, '요일'),
+                  React.createElement('th', {className:'p-3 text-left'}, '주차조건'),
+                  React.createElement('th', {className:'p-3 text-left'}, '유형'),
+                  React.createElement('th', {className:'p-3 text-left'}, '항목'),
+                ])),
+                React.createElement('tbody', {key:'tb'}, purchaseCsv.map((p, idx) => (
+                  React.createElement('tr', {key:idx, className:'border-t border-zinc-800/60'}, [
+                    React.createElement('td', {className:'p-3'}, p.day),
+                    React.createElement('td', {className:'p-3'}, p.weekCond),
+                    React.createElement('td', {className:'p-3'}, p.type),
+                    React.createElement('td', {className:'p-3 text-zinc-400'}, p.item),
+                  ])
+                )))
+              ]))
+          ]),
+
+          React.createElement('section', {key:'trips', className:'grid gap-3'}, [
+            React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(ShoppingBasket, {className:'text-emerald-400', key:'i'}), '장보기 트립 계획']),
+            React.createElement('div', {className:'rounded-2xl border border-zinc-800 overflow-hidden'},
+              React.createElement('table', {className:'w-full text-sm'}, [
+                React.createElement('thead', {className:'bg-zinc-800/50', key:'th'}, React.createElement('tr', null, [
+                  React.createElement('th', {className:'p-3 text-left'}, '요일'),
+                  React.createElement('th', {className:'p-3 text-left'}, '주차조건'),
+                  React.createElement('th', {className:'p-3 text-left'}, '트립'),
+                  React.createElement('th', {className:'p-3 text-left'}, '필수여부'),
+                  React.createElement('th', {className:'p-3 text-left'}, '품목'),
+                  React.createElement('th', {className:'p-3 text-left'}, '권장 수량'),
+                  React.createElement('th', {className:'p-3 text-left'}, '메모'),
+                ])),
+                React.createElement('tbody', {key:'tb'}, tripsCsv.map((t, idx) => (
+                  React.createElement('tr', {key:idx, className:'border-t border-zinc-800/60'}, [
+                    React.createElement('td', {className:'p-3'}, t.day),
+                    React.createElement('td', {className:'p-3'}, t.weekCond),
+                    React.createElement('td', {className:'p-3'}, t.trip),
+                    React.createElement('td', {className:'p-3'}, t.required),
+                    React.createElement('td', {className:'p-3'}, t.item),
+                    React.createElement('td', {className:'p-3'}, t.qty),
+                    React.createElement('td', {className:'p-3 text-zinc-400'}, t.memo),
+                  ])
+                )))
+              ]))
+          ]),
+
+          React.createElement('section', {key:'pantry', className:'grid gap-3'}, [
+            React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(ShoppingBasket, {className:'text-emerald-400', key:'i'}), '팬트리 상시 재고']),
+            React.createElement('div', {className:'rounded-2xl border border-zinc-800 overflow-hidden'},
+              React.createElement('table', {className:'w-full text-sm'}, [
+                React.createElement('thead', {className:'bg-zinc-800/50', key:'th'}, React.createElement('tr', null, [
+                  React.createElement('th', {className:'p-3 text-left'}, '품목'),
+                  React.createElement('th', {className:'p-3 text-left'}, '보충 주기'),
+                  React.createElement('th', {className:'p-3 text-left'}, '메모'),
+                ])),
+                React.createElement('tbody', {key:'tb'}, pantryCsv.map((p, idx) => (
+                  React.createElement('tr', {key:idx, className:'border-t border-zinc-800/60'}, [
+                    React.createElement('td', {className:'p-3'}, p.item),
+                    React.createElement('td', {className:'p-3'}, p.cycle),
+                    React.createElement('td', {className:'p-3 text-zinc-400'}, p.memo),
                   ])
                 )))
               ]))
@@ -304,73 +350,6 @@
                     React.createElement('td', {className:'p-3 align-top'}, s.todayOnly),
                     React.createElement('td', {className:'p-3 align-top'}, s.leftover),
                     React.createElement('td', {className:'p-3 align-top text-zinc-400'}, s.note),
-                  ])
-                )))
-              ]))
-          ]),
-
-          React.createElement('section', {key:'pantry', className:'grid gap-3'}, [
-            React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(ShoppingBasket, {className:'text-emerald-400', key:'i'}), '팬트리 상시 재고']),
-            React.createElement('div', {className:'rounded-2xl border border-zinc-800 overflow-hidden'},
-              React.createElement('table', {className:'w-full text-sm'}, [
-                React.createElement('thead', {className:'bg-zinc-800/50', key:'th'}, React.createElement('tr', null, [
-                  React.createElement('th', {className:'p-3 text-left'}, '품목'),
-                  React.createElement('th', {className:'p-3 text-left'}, '보충 주기'),
-                  React.createElement('th', {className:'p-3 text-left'}, '메모'),
-                ])),
-                React.createElement('tbody', {key:'tb'}, pantryCsv.map((p, idx) => (
-                  React.createElement('tr', {key:idx, className:'border-t border-zinc-800/60'}, [
-                    React.createElement('td', {className:'p-3'}, p.item),
-                    React.createElement('td', {className:'p-3'}, p.cycle),
-                    React.createElement('td', {className:'p-3 text-zinc-400'}, p.memo),
-                  ])
-                )))
-              ]))
-          ]),
-
-          React.createElement('section', {key:'purchase', className:'grid gap-3'}, [
-            React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(ShoppingBasket, {className:'text-emerald-400', key:'i'}), '주간 구매/보충 스케줄']),
-            React.createElement('div', {className:'rounded-2xl border border-zinc-800 overflow-hidden'},
-              React.createElement('table', {className:'w-full text-sm'}, [
-                React.createElement('thead', {className:'bg-zinc-800/50', key:'th'}, React.createElement('tr', null, [
-                  React.createElement('th', {className:'p-3 text-left'}, '요일'),
-                  React.createElement('th', {className:'p-3 text-left'}, '주차조건'),
-                  React.createElement('th', {className:'p-3 text-left'}, '유형'),
-                  React.createElement('th', {className:'p-3 text-left'}, '항목'),
-                ])),
-                React.createElement('tbody', {key:'tb'}, purchaseCsv.map((p, idx) => (
-                  React.createElement('tr', {key:idx, className:'border-t border-zinc-800/60'}, [
-                    React.createElement('td', {className:'p-3'}, p.day),
-                    React.createElement('td', {className:'p-3'}, p.weekCond),
-                    React.createElement('td', {className:'p-3'}, p.type),
-                    React.createElement('td', {className:'p-3 text-zinc-400'}, p.item),
-                  ])
-                )))
-              ]))
-          ]),
-
-          React.createElement('section', {key:'trips', className:'grid gap-3'}, [
-            React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(ShoppingBasket, {className:'text-emerald-400', key:'i'}), '장보기 트립 계획']),
-            React.createElement('div', {className:'rounded-2xl border border-zinc-800 overflow-hidden'},
-              React.createElement('table', {className:'w-full text-sm'}, [
-                React.createElement('thead', {className:'bg-zinc-800/50', key:'th'}, React.createElement('tr', null, [
-                  React.createElement('th', {className:'p-3 text-left'}, '요일'),
-                  React.createElement('th', {className:'p-3 text-left'}, '주차조건'),
-                  React.createElement('th', {className:'p-3 text-left'}, '트립'),
-                  React.createElement('th', {className:'p-3 text-left'}, '필수여부'),
-                  React.createElement('th', {className:'p-3 text-left'}, '품목'),
-                  React.createElement('th', {className:'p-3 text-left'}, '권장 수량'),
-                  React.createElement('th', {className:'p-3 text-left'}, '메모'),
-                ])),
-                React.createElement('tbody', {key:'tb'}, tripsCsv.map((t, idx) => (
-                  React.createElement('tr', {key:idx, className:'border-t border-zinc-800/60'}, [
-                    React.createElement('td', {className:'p-3'}, t.day),
-                    React.createElement('td', {className:'p-3'}, t.weekCond),
-                    React.createElement('td', {className:'p-3'}, t.trip),
-                    React.createElement('td', {className:'p-3'}, t.required),
-                    React.createElement('td', {className:'p-3'}, t.item),
-                    React.createElement('td', {className:'p-3'}, t.qty),
-                    React.createElement('td', {className:'p-3 text-zinc-400'}, t.memo),
                   ])
                 )))
               ]))
