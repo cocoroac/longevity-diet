@@ -164,6 +164,9 @@
               React.createElement(Btn, {onClick:()=>downloadCSV('recipes.csv', recipeCSVRows, recipeCSVHeaders), className:'print:hidden', variant:'soft', key:'r'}, [React.createElement(Download, {size:16, key:'d'}), ' 레시피 CSV']),
               React.createElement(Btn, {onClick:()=>downloadCSV('grocery_v3.csv', groceryCSVRows, groceryCSVHeaders), className:'print:hidden', variant:'soft', key:'g'}, [React.createElement(Download, {size:16, key:'d2'}), ' 장보기 CSV']),
               React.createElement(Btn, {onClick:()=>downloadCSV('calendar_28d.csv', calendarCSVRows, calendarCSVHeaders), className:'print:hidden', variant:'soft', key:'c'}, [React.createElement(Download, {size:16, key:'d3'}), ' 캘린더 CSV']),
+              React.createElement(Btn, {onClick:()=>downloadCSV('pantry_restock.csv', pantryCsv.map(p=>({"품목":p.item,"보충 주기":p.cycle,"메모":p.memo})), ["품목","보충 주기","메모"]), className:'print:hidden', variant:'soft', key:'pnt'}, [React.createElement(Download, {size:16, key:'d4'}), ' 팬트리 CSV']),
+              React.createElement(Btn, {onClick:()=>downloadCSV('purchase_schedule.csv', purchaseCsv.map(p=>({"요일":p.day,"주차조건":p.weekCond,"유형":p.type,"항목":p.item})), ["요일","주차조건","유형","항목"]), className:'print:hidden', variant:'soft', key:'pur'}, [React.createElement(Download, {size:16, key:'d5'}), ' 스케줄 CSV']),
+              React.createElement(Btn, {onClick:()=>downloadCSV('shopping_trips.csv', tripsCsv.map(t=>({"요일":t.day,"주차조건":t.weekCond,"트립":t.trip,"필수여부":t.required,"품목":t.item,"권장 수량":t.qty,"메모":t.memo})), ["요일","주차조건","트립","필수여부","품목","권장 수량","메모"]), className:'print:hidden', variant:'soft', key:'trp'}, [React.createElement(Download, {size:16, key:'d6'}), ' 트립 CSV'])
             ])
           ])
         ),
