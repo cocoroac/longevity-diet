@@ -180,6 +180,26 @@
         }
       };
 
+      // 브라우저 내비게이션 처리: 뒤로가기 시 캘린더로 복귀
+      useEffect(()=>{
+        const onPop = (e) => {
+          if(e.state && e.state.type === 'cal'){
+            if(typeof e.state.week === 'number') setWeek(e.state.week);
+            const cal = document.getElementById('section-cal');
+            cal?.scrollIntoView({ behavior:'smooth', block:'start' });
+          } else if(!location.hash){
+            const cal = document.getElementById('section-cal');
+            cal?.scrollIntoView({ behavior:'smooth', block:'start' });
+          }
+        };
+        window.addEventListener('popstate', onPop);
+        // 해시가 레시피인 경우 바로 스크롤
+        if(location.hash && location.hash.startsWith('#recipe-')){
+          scrollToSlug(location.hash.slice(1));
+        }
+        return ()=> window.removeEventListener('popstate', onPop);
+      }, []);
+
       // 섹션 접기/펼치기 상태
       const [collapsed, setCollapsed] = useState({ cal:false, gro:false, purchase:false, trips:false, pantry:false, rec:false, ops:false, shelf:false });
       const toggle = (k) => setCollapsed(s => ({...s, [k]: !s[k]}));
@@ -224,7 +244,7 @@
         ),
 
         React.createElement('main', {key:'main', className:'mx-auto max-w-6xl px-4 py-6 grid gap-8'}, [
-          React.createElement('section', {key:'cal', className:'grid gap-3'}, [
+          React.createElement('section', {key:'cal', id:'section-cal', className:'grid gap-3'}, [
             React.createElement('div', {className:'flex items-center justify-between gap-3'}, [
               React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(Soup, {className:'text-emerald-400', key:'i'}), '주간 캘린더']),
               React.createElement('div', {className:'flex items-center gap-2'}, [
@@ -248,7 +268,7 @@
                       React.createElement('td', {className:'p-3 align-top', rowSpan:d.meals.length}, d.window),
                     ] : []),
                     React.createElement('td', {className:'p-3 align-top whitespace-nowrap'}, m.time),
-                    React.createElement('td', {className:'p-3 align-top'}, [React.createElement('span', {className:'font-medium cursor-pointer hover:underline', onClick:()=>{ const name=getRecipeName(m.title,m.detail); scrollToSlug(recipeSlugByName.get(name)); }}, m.title), React.createElement('div', {className:'text-zinc-400'}, m.detail)]),
+                    React.createElement('td', {className:'p-3 align-top'}, [React.createElement('span', {className:'font-medium cursor-pointer hover:underline', onClick:()=>{ const name=getRecipeName(m.title,m.detail); const slug=recipeSlugByName.get(name); if(slug){ history.pushState({type:'cal', week}, '', `#${slug}`); scrollToSlug(slug); } }}, m.title), React.createElement('div', {className:'text-zinc-400'}, m.detail)]),
                     ...(j===0 ? [React.createElement('td', {className:'p-3 align-top', rowSpan:d.meals.length}, d.note ?? '')] : []),
                   ])
                 ))))
