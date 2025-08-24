@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>저속노화 28일 식단</title>
+  <meta name="description" content="옵션 C(16:8) · 28일 식단 캘린더, 장보기, 레시피, 조리 가이드" />
+  <link rel="icon" href="data:," />
+  <!-- Tailwind (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>html,body,#root{height:100%}</style>
+</head>
+<body class="bg-zinc-900 text-zinc-100">
+  <div id="root"></div>
+
+  <script type="module">
+    import React, { useMemo, useState } from 'https://esm.sh/react@18';
+    import { createRoot } from 'https://esm.sh/react-dom@18/client';
+    import { Download, Search, ChefHat, Utensils, Soup, ShoppingBasket, Printer, Clock, Flame, Info, CheckCircle } from 'https://esm.sh/lucide-react@0.370.0?deps=react@18';
+
+    const Btn = ({variant="primary", className="", ...props}) => {
+      const base = "inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition";
+      const style = variant === "ghost" ? "bg-transparent hover:bg-zinc-800/30" : variant === "soft" ? "bg-zinc-800/60 hover:bg-zinc-700/70" : "bg-emerald-600 hover:bg-emerald-500";
+      return React.createElement('button', { className: `${base} ${style} ${className}`, ...props });
+    };
+
+    const Badge = ({children, className=""}) => React.createElement('span', { className: `inline-flex items-center rounded-full border border-zinc-700 bg-zinc-800/70 px-2.5 py-0.5 text-xs ${className}` }, children);
+
+    const RECIPES = [
+      {category:"샌드위치", name:"치킨 아보카도", servings:"빵 2슬라이스 1인분", ingredients:"통곡물빵 2장(60g), 닭가슴살 구이 150g, 아보카도 70g(1/2개), 루콜라 20g, 토마토 60g, 적양파 15g", dressing:"홀그레인 머스터드 10g + 올리브오일 5ml + 레몬즙 5ml + 후추", steps:"1) 빵 토스트. 2) 닭 슬라이스·채소 손질. 3) 소스 바르고 적층. 4) 바로 섭취.", proteinTarget:"45–55", storage:"닭: 조리 후 3–4일 냉장, 나머지 냉동.", options:"아보카도→후무스 30g 대체 가능. 단백질 업: 닭 +30–50g."},
+      {category:"샌드위치", name:"참치 레몬셀러리", servings:"빵 2슬라이스 1인분", ingredients:"통곡물빵 2장(60g), 참치 체 130g, 셀러리 40g, 적양파 20g", dressing:"올리브오일 5ml + 레몬즙 10ml + 후추 + 소금 약간", steps:"1) 참치 물기 제거 후 셀러리·양파와 버무림. 2) 소스 섞기. 3) 빵에 올림.", proteinTarget:"40–50", storage:"캔 개봉 후 유리용기 1–2일 내.", options:"빵 대신 통곡 또띠야 가능. +삶은달걀 1개로 단백질 업."},
+      {category:"샌드위치", name:"훈제연어 오이&요거트", servings:"빵 2슬라이스 1인분", ingredients:"통곡물빵 2장(60g), 훈제연어 110g, 오이 60g, 적양파 20g, 케이퍼 5g, 딜", dressing:"그릭요거트 30g + 레몬즙 5ml + 머스터드 5g", steps:"1) 빵 토스트. 2) 요거트 소스 바르고 오이·연어·양파·케이퍼. 3) 딜·후추.", proteinTarget:"35–45", storage:"훈제연어는 3일 내 소진.", options:"코티지치즈 40g 추가 가능."},
+      {category:"샌드위치", name:"에그&치킨 요거트머스터드", servings:"빵 2슬라이스 1인분", ingredients:"통곡물빵 2장(60g), 삶은달걀 2개(100g), 닭가슴 슬라이스 80g, 파프리카 40g, 파슬리", dressing:"그릭요거트 20g + 머스터드 5g + 레몬즙 5ml", steps:"1) 달걀 으깨 소스와 버무림. 2) 닭과 적층. 3) 허브.", proteinTarget:"40–50", storage:"삶은 달걀 1주(껍질째).", options:"닭→훈제칠면조 대체 가능."},
+      {category:"샌드위치", name:"정어리 레몬케이퍼(오픈샌드)", servings:"빵 1–2슬라이스 1인분", ingredients:"통곡물빵 1–2장(30–60g), 정어리 통조림 120–150g(체), 적양파 15g, 딜, 레몬 제스트", dressing:"올리브오일 5ml + 레몬즙 10ml + 케이퍼 5g", steps:"1) 빵 토스트. 2) 정어리 올리고 소스. 3) 양파·딜·제스트.", proteinTarget:"35–45", storage:"캔 개봉 후 1–2일.", options:"삶은달걀 1개 추가."},
+      {category:"샌드위치", name:"닭가슴 바질페스토", servings:"빵 2슬라이스 1인분", ingredients:"통곡물빵 2장(60g), 닭가슴 150g, 토마토 60g, 바질 5g", dressing:"바질 페스토 15g", steps:"1) 빵 토스트. 2) 페스토 바르고 닭·토마토·바질.", proteinTarget:"45–55", storage:"페스토 1주 냉장(기름층으로 덮기).", options:"페스토→머스터드+올리브오일로 대체."},
+      {category:"샌드위치", name:"두부 스테이크 랩", servings:"또띠야 1장 1인분", ingredients:"단단한 두부 200g, 양배추채 60g, 당근채 40g, 통곡 또띠야 1", dressing:"라임즙 10ml + 간장 5ml + 올리브오일 5ml", steps:"1) 두부 1.5cm 두께로 굽기. 2) 채소와 함께 또띠야에 올려 소스. 3) 말아 반으로 절단.", proteinTarget:"28–35", storage:"두부 오픈 후 3–4일.", options:"에다마메 80g 추가로 단백질 업."},
+      {category:"샌드위치", name:"고등어 토마토", servings:"빵 2슬라이스 1인분", ingredients:"통곡물빵 2장(60g), 고등어 통조림 120g(체), 토마토 60g, 올리브 10g", dressing:"발사믹 10ml + 올리브오일 5ml", steps:"1) 빵 토스트. 2) 고등어·토마토·올리브·소스.", proteinTarget:"35–45", storage:"캔 개봉 후 1–2일.", options:"닭 50g 추가 가능."},
+      {category:"샌드위치", name:"연어 사시미 오픈샌드(당일)", servings:"빵 1–2슬라이스 1인분", ingredients:"통곡물빵 1–2장(30–60g), 회용 연어 110g, 아보카도 50g, 딜·후추, 레몬즙 5ml", dressing:"올리브오일 3–5ml(선택)", steps:"1) 빵 토스트. 2) 연어·아보카도 올리고 레몬즙·후추·딜. 3) 즉시 섭취.", proteinTarget:"30–40", storage:"사시미: 개봉 당일 섭취(남으면 익일 점심까지).", options:"연어 +40g으로 단백질 업."},
+      {category:"샌드위치", name:"허머스·치킨 콤보", servings:"빵 2슬라이스 1인분", ingredients:"통곡물빵 2장(60g), 허머스 30g, 닭가슴 120g, 오이 50g, 파프리카 40g", dressing:"올리브오일 3–5ml + 레몬즙 5ml", steps:"1) 빵에 허머스. 2) 닭·채소 적층 후 소스.", proteinTarget:"40–50", storage:"허머스 3–5일.", options:"닭→칠면조/두부 대체 가능."},
+      {category:"샐러드", name:"치킨 파프리카 볼", servings:"대형 볼 1인분", ingredients:"혼합잎 150g, 닭가슴 200g, 파프리카 80g, 적양파 20g", dressing:"올리브오일 10ml + 레몬즙 10ml + 소금·후추", steps:"1) 잎채소. 2) 닭·채소 올리고 드레싱. 3) 섞어 섭취.", proteinTarget:"60–70", storage:"닭 따뜻하게 올리면 포만감↑.", options:"에다마메 100g 추가."},
+      {category:"샐러드", name:"두부 타히니", servings:"대형 볼 1인분", ingredients:"두부 220g, 혼합잎 120g, 오이 80g, 방울토마토 100g", dressing:"타히니 15g + 레몬즙 10ml + 물 10ml + 소금 한꼬집", steps:"1) 두부 지짐. 2) 채소와 볼에 담고 타히니.", proteinTarget:"35–45", storage:"두부 수분 제거 필수.", options:"병아리콩 100g 추가."},
+      {category:"샐러드", name:"고등어&버섯", servings:"대형 볼 1인분", ingredients:"혼합잎 120g, 고등어캔 150g(체), 양송이 120g(구움)", dressing:"발사믹 10ml + 올리브오일 10ml", steps:"1) 버섯 구워 식힘. 2) 잎채소 위에 고등어·버섯·드레싱.", proteinTarget:"35–45", storage:"캔 1–2일 내.", options:"삶은달걀 1–2개 추가."},
+      {category:"샐러드", name:"니수아즈 변형", servings:"대형 볼 1인분", ingredients:"참치 120g(체), 삶은 달걀 1개, 로메인 120g, 완두/그린빈 80g, 올리브 10g, 토마토 100g", dressing:"올리브오일 10ml + 레몬즙 10ml + 머스터드 5g", steps:"1) 채소 손질. 2) 참치·달걀 올리고 드레싱.", proteinTarget:"40–50", storage:"완두는 데쳐 식힘.", options:"참치 +40g"},
+      {category:"샐러드", name:"그릭 샐러드+치킨", servings:"대형 볼 1인분", ingredients:"오이 120g, 토마토 150g, 적양파 20g, 올리브 10g, 페타 20g, 닭 180g, 잎채소 100g", dressing:"올리브오일 10ml + 레몬 10ml + 오레가노", steps:"1) 채소 큼직. 2) 닭·페타·드레싱.", proteinTarget:"55–65", storage:"페타 염분 주의.", options:"닭 +40g"},
+      {category:"샐러드", name:"연어 사시미 샐러드(당일)", servings:"대형 볼 1인분", ingredients:"회용 연어 150g, 아보카도 50g, 오이 100g, 적양파 20g, 잎채소 120g", dressing:"폰즈 20ml(또는 간장 10ml+레몬 10ml) + 참깨", steps:"1) 재료 차갑게. 2) 연어 먹기 직전 썰어 올리고 드레싱. 3) 즉시 섭취.", proteinTarget:"32–40", storage:"사시미는 당일 섭취.", options:"연어 +50g"},
+      {category:"샐러드", name:"연어 포케 스타일(당일)", servings:"대형 볼 1인분", ingredients:"회용 연어 150g, 미역 50g(불림), 오이 80g, 아보카도 50g, 잎채소 100g", dressing:"간장 10ml + 라임 10ml + 참기름 5ml + 참깨", steps:"1) 재료 준비. 2) 버무림. 3) 현미 100g 옵션.", proteinTarget:"32–40", storage:"당일 섭취.", options:"연어 +50g"},
+      {category:"샐러드", name:"병아리콩&단호박", servings:"대형 볼 1인분", ingredients:"병아리콩 180g, 구운 단호박 150g, 잎채소 120g", dressing:"올리브오일 10ml + 레몬 10ml + 커민 한꼬집", steps:"1) 단호박 구워 식힘. 2) 섞어 드레싱.", proteinTarget:"20–25", storage:"콩은 헹궈 소금기 제거.", options:"닭 100g 추가"},
+      {category:"샐러드", name:"정어리 토마토", servings:"대형 볼 1인분", ingredients:"정어리캔 150g(체), 토마토 150g, 루콜라 120g", dressing:"올리브오일 10ml + 레몬 10ml + 후추", steps:"1) 토마토 큼직, 정어리 덩어리 채로. 2) 드레싱.", proteinTarget:"35–40", storage:"뼈째 섭취.", options:"삶은달걀 1개"},
+      {category:"샐러드", name:"훈제연어&요거트 딜", servings:"대형 볼 1인분", ingredients:"훈제연어 100g, 오이 120g, 잎채소 120g, 케이퍼 5g", dressing:"그릭요거트 40g + 레몬 10ml + 딜", steps:"1) 채소 깔고 연어·오이·드레싱.", proteinTarget:"30–40", storage:"훈제연어 3일 내.", options:"연어 +50g"},
+      {category:"샐러드", name:"닭+로메인 시저(요거트)", servings:"대형 볼 1인분", ingredients:"닭가슴 220g, 로메인 160g, 파르메산 10g", dressing:"요거트 40g + 레몬 10ml + 마늘 1/2t + 앤초비 3g(선택)", steps:"1) 로메인 손질. 2) 닭·드레싱·파르메산.", proteinTarget:"65–80", storage:"드레싱 당일 사용.", options:"닭 +30g"},
+      {category:"샐러드", name:"렌틸&채소 믹스", servings:"대형 볼 1인분", ingredients:"렌틸 180g(파우치), 오이 100g, 파프리카 80g, 적양파 20g, 잎채소 120g", dressing:"올리브오일 10ml + 레몬 10ml + 머스터드 5g", steps:"1) 렌틸 데워 식힘. 2) 섞어 드레싱.", proteinTarget:"20–25", storage:"잔량 1–2일 내.", options:"닭 120g 추가"},
+      {category:"요거트", name:"블루베리 60g + 호두 10g", servings:"컵 1", ingredients:"그릭요거트 80g + 블루베리 60g + 호두 10g", dressing:"—", steps:"섞어 바로 섭취", proteinTarget:"8–10", storage:"대용량 요거트는 월/목 오픈", options:"—"},
+      {category:"요거트", name:"키위 1개", servings:"컵 1", ingredients:"그릭요거트 80g + 키위 1", dressing:"—", steps:"키위 깍둑썰어 토핑", proteinTarget:"8–10", storage:"—", options:"—"},
+      {category:"요거트", name:"아몬드 15g", servings:"컵 1", ingredients:"그릭요거트 80g + 아몬드 15g", dressing:"—", steps:"거칠게 다져 올림", proteinTarget:"9–11", storage:"—", options:"—"},
+      {category:"요거트", name:"사과 1/2 + 시나몬", servings:"컵 1", ingredients:"그릭요거트 80g + 사과 1/2 + 시나몬", dressing:"—", steps:"사과 잘게 썰어 토핑", proteinTarget:"8–10", storage:"—", options:"—"},
+      {category:"요거트", name:"피스타치오 15g", servings:"컵 1", ingredients:"그릭요거트 80g + 피스타치오 15g", dressing:"—", steps:"껍질 제거·다져 올림", proteinTarget:"9–11", storage:"—", options:"—"},
+      {category:"요거트", name:"바나나 1/2", servings:"컵 1", ingredients:"그릭요거트 80g + 바나나 1/2", dressing:"—", steps:"슬라이스로 얹기", proteinTarget:"8–10", storage:"—", options:"—"},
+      {category:"요거트", name:"치아씨 10g", servings:"컵 1", ingredients:"그릭요거트 80g + 치아씨 10g", dressing:"—", steps:"5–10분 불려 섞기", proteinTarget:"8–10", storage:"수분 충분히", options:"—"},
+      {category:"요거트", name:"딸기 100g", servings:"컵 1", ingredients:"그릭요거트 80g + 딸기 100g", dressing:"—", steps:"슬라이스", proteinTarget:"8–10", storage:"—", options:"—"},
+    ];
+
+    const GROCERY_V3 = [
+      {group:"공통(주간)", item:"통곡물 식빵", qty:"1개(1/2 냉동)", memo:"필요 시 토스트"},
+      {group:"공통(주간)", item:"닭가슴살", qty:"1.4–1.6 kg", memo:"일요일 조리; 3–4일 냉장, 나머지 냉동"},
+      {group:"공통(주간)", item:"통조림 생선(참치/정어리/고등어)", qty:"3–4캔", memo:"개봉 후 유리용기 1–2일"},
+      {group:"공통(주간)", item:"두부", qty:"2모", memo:"오픈 후 3–4일 내"},
+      {group:"공통(주간)", item:"병아리콩/렌틸", qty:"1–2팩", memo:"샐러드 토핑"},
+      {group:"공통(주간)", item:"냉동 에다마메(풋콩)", qty:"400 g 1팩", memo:"사시미 날 단백질 보강(+100g/회)"},
+      {group:"공통(주간)", item:"그릭요거트(무가당)", qty:"400–500 g 또는 125g×3–4컵", memo:"월·목 오픈, 매일 80g (15:00)"},
+      {group:"공통(주간)", item:"달걀", qty:"4–6개", memo:"일요일 삶기(껍질째)"},
+      {group:"공통(주간)", item:"샐러드믹스/잎채소", qty:"2–3통(총 500–800 g)", memo:"월/목 나눠 개봉"},
+      {group:"공통(주간)", item:"채소(오이·파프리카·토마토·양파)", qty:"5–7개", memo:"샌드/샐러드 공용"},
+      {group:"공통(주간)", item:"아보카도", qty:"2–3개", memo:"숙성 단계 섞기"},
+      {group:"공통(주간)", item:"과일", qty:"6–8회분", memo:"요거트 토핑용"},
+      {group:"공통(주간)", item:"견과·씨앗", qty:"소분(10–15 g)", memo:"호두/아몬드/피스타치오/치아"},
+      {group:"공통(주간)", item:"올리브오일·발사믹·머스터드·레몬/라임", qty:"적당량", memo:"드레싱 2종 제조"},
+      {group:"공통(주간)", item:"전해질(나트륨)", qty:"500–1000 mg/훈련 아침", memo:"물에 타서 섭취"},
+      {group:"연어 주간(1·3주)", item:"연어(사시미용, 급속냉동)", qty:"300–400 g/주(또는 1 kg 소분)", memo:"개봉 당일 섭취(익일 점심까지만)"},
+      {group:"연어 주간(1·3주)", item:"훈제연어(선택)", qty:"200 g", memo:"화 오픈→목까지"},
+    ];
+
+    const DAYS = ["월","화","수","목","금","토","일"];
+
+    function rotatePick(arr, index){ return arr[index % arr.length]; }
+
+    function buildCalendar(){
+      const cal = [];
+      let sIdx=0, yIdx=0, salIdx=0, highIdx=0;
+
+      // 평일 오전에 회가 나오지 않도록: 샌드에서 '사시미' 제외
+      const sandwiches = RECIPES.filter(r => r.category === "샌드위치" && !r.name.includes("사시미"));
+      const allSalads = RECIPES.filter(r => r.category === "샐러드");
+      const highSalads = allSalads.filter(r => r.name.includes("치킨") || r.name.includes("시저")); // 고단백 우선
+      const otherSalads = allSalads.filter(r => !(r.name.includes("치킨") || r.name.includes("시저")));
+
+      for(let w=1; w<=4; w++){
+        for(let d=0; d<7; d++){
+          const isWeekend = d>=5; const day = DAYS[d];
+          const entry = { week:w, day, window: isWeekend?"12:00–20:00":"10:00–18:00" };
+
+          if(!isWeekend){
+            const sand = rotatePick(sandwiches, sIdx++);
+            const yogurt = rotatePick(RECIPES.filter(r=>r.category==="요거트"), yIdx++);
+
+            const sashimiWeek = (w===1 || w===3);
+            const isWed = d===2, isThu = d===3;
+            let salad;
+
+            if (sashimiWeek && (isWed || isThu)){
+              // 수: 사시미 / 목: 포케
+              salad = RECIPES.find(r=>r.category==="샐러드" && (isWed ? r.name.includes("사시미 샐러드") : r.name.includes("포케")));
+            } else if ([0,1,4].includes(d)) {
+              // 월/화/금: 고단백 샐러드 우선
+              salad = rotatePick(highSalads, highIdx++);
+            } else {
+              salad = rotatePick(otherSalads.length ? otherSalads : allSalads, salIdx++);
+            }
+
+            let saladDetail = `${salad.proteinTarget} g 단백질`;
+            if (sashimiWeek && (isWed || isThu)) saladDetail = `연어 200g + 에다마메 100g(보강)`;
+
+            entry.meals = [
+              {time:"10:00", title:`[샌드] ${sand.name}`, detail:`${sand.proteinTarget} g 단백질`},
+              {time:"15:00", title:"그릭요거트 80g", detail:yogurt.name},
+              {time:"17:15", title:`[샐러드] ${salad.name}`, detail: saladDetail},
+            ];
+
+            if (sashimiWeek && (isWed || isThu)) {
+              entry.note = "회용 연어: 개봉 당일 섭취(남으면 익일 점심까지) · 연어 200g + 에다마메 100g 추가";
+            }
+          } else {
+            const sand = rotatePick(sandwiches, sIdx++);
+            entry.meals = [
+              {time:"12:00", title:`[샌드] ${sand.name}`, detail:`${sand.proteinTarget} g 단백질`},
+              {time:"19:00", title:"자유식", detail:"20:00 이전 마감"},
+            ];
+            entry.note = "주말은 12–20 식사창. 자유식 날 음주 시 물 +500–700ml";
+          }
+
+          cal.push(entry);
+        }
+      }
+      return cal;
+    }
+
+    const CALENDAR = buildCalendar();
+
+    function toCSV(rows, headers){
+      const esc = (s) => '"' + String((s == null ? "" : s)).replaceAll('"','""') + '"';
+      const head = headers.map(esc).join(',');
+      const body = rows.map(r => headers.map(h => esc(r[h])).join(',')).join('\n');
+      return head + '\n' + body;
+    }
+    function downloadCSV(filename, rows, headers){
+      const csv = toCSV(rows, headers);
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function App(){
+      const [search, setSearch] = useState('');
+      const [cat, setCat] = useState('전체');
+      const [week, setWeek] = useState(1);
+
+      const filteredRecipes = useMemo(()=> RECIPES.filter(r => (cat==='전체' || r.category===cat) && (r.name.includes(search) || r.ingredients.includes(search) || r.steps.includes(search))), [search, cat]);
+      const weekView = useMemo(()=> CALENDAR.filter(d=>d.week===week), [week]);
+
+      const recipeCSVHeaders = ["카테고리","레시피","1인분(서빙)","재료","드레싱/소스","조리 단계","목표 단백질(g)","보관/소비 팁","옵션/대체"];
+      const recipeCSVRows = RECIPES.map(r=>({"카테고리":r.category,"레시피":r.name,"1인분(서빙)":r.servings,"재료":r.ingredients,"드레싱/소스":r.dressing,"조리 단계":r.steps,"목표 단백질(g)":r.proteinTarget,"보관/소비 팁":r.storage,"옵션/대체":r.options}));
+      const groceryCSVHeaders = ["구분","품목","권장 수량","메모"];
+      const groceryCSVRows = GROCERY_V3.map(g=>({"구분":g.group,"품목":g.item,"권장 수량":g.qty,"메모":g.memo}));
+      const calendarCSVHeaders = ["주차","요일","식사창","시간","메뉴","비고"];
+      const calendarCSVRows = CALENDAR.flatMap(d => d.meals.map(m=>({"주차":d.week,"요일":d.day,"식사창":d.window,"시간":m.time,"메뉴":`${m.title} — ${m.detail}`,"비고":d.note ?? ''})));
+
+      return React.createElement('div', {className:'min-h-screen'}, [
+          React.createElement('header', {key:'hdr', className:'sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-zinc-900/70 border-b border-zinc-800'},
+            React.createElement('div', {className:'mx-auto max-w-6xl px-4 py-3 flex items-center gap-3'}, [
+              React.createElement(ChefHat, {className:'text-emerald-400', key:'icon'}),
+              React.createElement('h1', {className:'text-lg font-semibold tracking-tight', key:'title'}, '저속노화 28일 식단'),
+              React.createElement('div', {className:'ml-auto flex items-center gap-2', key:'actions'}, [
+                React.createElement(Btn, {onClick:()=>window.print(), className:'print:hidden', variant:'soft', key:'print'}, [React.createElement(Printer, {size:16, key:'p'}), ' 인쇄']),
+                React.createElement(Btn, {onClick:()=>downloadCSV('recipes.csv', recipeCSVRows, recipeCSVHeaders), className:'print:hidden', variant:'soft', key:'r'}, [React.createElement(Download, {size:16, key:'d'}), ' 레시피 CSV']),
+                React.createElement(Btn, {onClick:()=>downloadCSV('grocery_v3.csv', groceryCSVRows, groceryCSVHeaders), className:'print:hidden', variant:'soft', key:'g'}, [React.createElement(Download, {size:16, key:'d2'}), ' 장보기 CSV']),
+                React.createElement(Btn, {onClick:()=>downloadCSV('calendar_28d.csv', calendarCSVRows, calendarCSVHeaders), className:'print:hidden', variant:'soft', key:'c'}, [React.createElement(Download, {size:16, key:'d3'}), ' 캘린더 CSV']),
+              ])
+            ])
+          ),
+
+          React.createElement('main', {key:'main', className:'mx-auto max-w-6xl px-4 py-6 grid gap-8'}, [
+            React.createElement('section', {key:'ov', className:'grid gap-3'},
+              React.createElement('div', {className:'grid grid-cols-1 md:grid-cols-4 gap-3'}, [
+                React.createElement('div', {className:'rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4', key:'ov1'}, [
+                  React.createElement('h3', {className:'font-semibold flex items-center gap-2 mb-1'}, [React.createElement(Clock, {size:16, className:'text-emerald-400', key:'i'}), '식사창']),
+                  React.createElement('p', {className:'text-sm text-zinc-300'}, '평일 ', React.createElement('b', null, '10:00–18:00'), ' (10시 샌드·15시 요거트·17:15 샐러드)', React.createElement('br'), '주말 ', React.createElement('b', null, '12:00–20:00'), ' (점심 샌드·저녁 자유식)')
+                ]),
+                React.createElement('div', {className:'rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4', key:'ov2'}, [
+                  React.createElement('h3', {className:'font-semibold flex items-center gap-2 mb-1'}, [React.createElement(Flame, {size:16, className:'text-emerald-400', key:'i'}), '운동']),
+                  React.createElement('p', {className:'text-sm text-zinc-300'}, '06:00 공복 운동 · 05:30 물+전해질 500–1000mg · 블랙커피')
+                ]),
+                React.createElement('div', {className:'rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4', key:'ov3'}, [
+                  React.createElement('h3', {className:'font-semibold flex items-center gap-2 mb-1'}, [React.createElement(CheckCircle, {size:16, className:'text-emerald-400', key:'i'}), '목표']),
+                  React.createElement('p', {className:'text-sm text-zinc-300'}, '단백질 ', React.createElement('b', null, '130–170g/일'), ', 식이섬유 30g+, 채소 400–600g/일')
+                ]),
+                React.createElement('div', {className:'rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4', key:'ov4'}, [
+                  React.createElement('h3', {className:'font-semibold flex items-center gap-2 mb-1'}, [React.createElement(Info, {size:16, className:'text-emerald-400', key:'i'}), '연어(회)']),
+                  React.createElement('p', {className:'text-sm text-zinc-300'}, '반드시 ', React.createElement('b', null, '사시미용(급속냉동)'), '만 사용 · ', React.createElement('b', null, '당일 섭취'), ' (남으면 익일 점심까지만)')
+                ])
+              ])
+            ),
+
+            React.createElement('section', {key:'cal', className:'grid gap-3'}, [
+              React.createElement('div', {className:'flex items-center justify-between gap-3'}, [
+                React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(Soup, {className:'text-emerald-400', key:'i'}), '주간 캘린더']),
+                React.createElement('div', {className:'flex items-center gap-2'}, [1,2,3,4].map(n => React.createElement(Btn, {key:n, variant: (week===n?'primary':'soft'), onClick:()=>setWeek(n)}, `${n}주차`)))
+              ]),
+              React.createElement('div', {className:'rounded-2xl border border-zinc-800 overflow-hidden'},
+                React.createElement('table', {className:'w-full text-sm'}, [
+                  React.createElement('thead', {className:'bg-zinc-800/50', key:'th'}, React.createElement('tr', null, [
+                    React.createElement('th', {className:'p-3 text-left'}, '요일'),
+                    React.createElement('th', {className:'p-3 text-left'}, '식사창'),
+                    React.createElement('th', {className:'p-3 text-left'}, '시간'),
+                    React.createElement('th', {className:'p-3 text-left'}, '메뉴'),
+                    React.createElement('th', {className:'p-3 text-left'}, '비고'),
+                  ])),
+                  
+                  React.createElement('tbody', {key:'tb'}, weekView.flatMap((d,i) => d.meals.map((m,j) => (
+                    React.createElement('tr', {key:`${i}-${j}`, className:'border-t border-zinc-800/60'}, [
+                      ...(j===0 ? [
+                        React.createElement('td', {className:'p-3 align-top', rowSpan:d.meals.length}, React.createElement('b', null, d.day)),
+                        React.createElement('td', {className:'p-3 align-top', rowSpan:d.meals.length}, d.window),
+                      ] : []),
+                      React.createElement('td', {className:'p-3 align-top whitespace-nowrap'}, m.time),
+                      React.createElement('td', {className:'p-3 align-top'}, [React.createElement('span', {className:'font-medium'}, m.title), React.createElement('div', {className:'text-zinc-400'}, m.detail)]),
+                      ...(j===0 ? [React.createElement('td', {className:'p-3 align-top', rowSpan:d.meals.length}, (d.note != null ? d.note : ''))] : []),
+                    ])
+                  ))))
+                ]))
+            ]),
+
+            React.createElement('section', {key:'gro', className:'grid gap-3'}, [
+              React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(ShoppingBasket, {className:'text-emerald-400', key:'i'}), '주간 장보기 v3']),
+              React.createElement('div', {className:'rounded-2xl border border-zinc-800 overflow-hidden'},
+                React.createElement('table', {className:'w-full text-sm'}, [
+                  React.createElement('thead', {className:'bg-zinc-800/50', key:'th'}, React.createElement('tr', null, [
+                    React.createElement('th', {className:'p-3 text-left'}, '구분'),
+                    React.createElement('th', {className:'p-3 text-left'}, '품목'),
+                    React.createElement('th', {className:'p-3 text-left'}, '권장 수량'),
+                    React.createElement('th', {className:'p-3 text-left'}, '메모'),
+                  ])),
+                  React.createElement('tbody', {key:'tb'}, GROCERY_V3.map((g, idx) => (
+                    React.createElement('tr', {key:idx, className:'border-t border-zinc-800/60'}, [
+                      React.createElement('td', {className:'p-3'}, g.group),
+                      React.createElement('td', {className:'p-3'}, g.item),
+                      React.createElement('td', {className:'p-3'}, g.qty),
+                      React.createElement('td', {className:'p-3 text-zinc-400'}, g.memo),
+                    ])
+                  )))
+                ]))
+              ]),
+            ]),
+
+            React.createElement('section', {key:'rec', className:'grid gap-3'}, [
+              React.createElement('div', {className:'flex items-center justify-between gap-3'}, [
+                React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(Utensils, {className:'text-emerald-400', key:'i'}), '레시피']),
+                React.createElement('div', {className:'flex items-center gap-2'}, [
+                  ['전체','샌드위치','샐러드','요거트'].map(c => React.createElement(Btn, {key:c, variant:(cat===c?'primary':'soft'), onClick:()=>setCat(c)}, c)),
+                  React.createElement('div', {className:'relative'}, [
+                    React.createElement(Search, {size:16, className:'absolute left-3 top-2.5 text-zinc-400'}),
+                    React.createElement('input', {value:search, onChange:e=>setSearch(e.target.value), placeholder:'레시피 검색(이름/재료/단계)', className:'pl-9 pr-3 py-2 rounded-2xl bg-zinc-900 border border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500'})
+                  ])
+                ])
+              ]),
+              React.createElement('div', {className:'grid grid-cols-1 md:grid-cols-2 gap-3'}, filteredRecipes.map((r,i) => (
+                React.createElement('div', {key:i, className:'rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4'}, [
+                  React.createElement('div', {className:'flex items-center justify_between gap-2 mb-1'.replace('_','-')}, [
+                    React.createElement('div', {className:'flex items-center gap-2'}, [React.createElement(Badge, null, r.category), React.createElement('h3', {className:'font-semibold text-base'}, r.name)]),
+                    React.createElement(Badge, null, `${r.proteinTarget} g 단백질`)
+                  ]),
+                  React.createElement('p', {className:'text-sm text-zinc-300'}, React.createElement('b', null, '서빙:'), ' ', r.servings),
+                  React.createElement('p', {className:'text-sm text-zinc-300'}, React.createElement('b', null, '재료:'), ' ', r.ingredients),
+                  r.dressing !== '—' ? React.createElement('p', {className:'text-sm text-zinc-300'}, React.createElement('b', null, '드레싱/소스:'), ' ', r.dressing) : null,
+                  React.createElement('p', {className:'text-sm text-zinc-300'}, React.createElement('b', null, '단계:'), ' ', r.steps),
+                  r.storage ? React.createElement('p', {className:'text-sm text-zinc-400'}, React.createElement('b', null, '보관:'), ' ', r.storage) : null,
+                  r.options ? React.createElement('p', {className:'text-sm text-zinc-400'}, React.createElement('b', null, '옵션:'), ' ', r.options) : null,
+                ])
+              )))
+            ]),
+
+            React.createElement('section', {key:'cook', className:'grid gap-3'}, [
+              React.createElement('h2', {className:'text-xl font-semibold flex items-center gap-2'}, [React.createElement(ChefHat, {className:'text-emerald-400', key:'i'}), '기본 조리 가이드']),
+              React.createElement('div', {className:'rounded-2xl border border-zinc-800 overflow-hidden'},
+                React.createElement('table', {className:'w-full text-sm'}, [
+                  React.createElement('thead', {className:'bg-zinc-800/50', key:'th'}, React.createElement('tr', null, [
+                    React.createElement('th', {className:'p-3 text-left'}, '항목'),
+                    React.createElement('th', {className:'p-3 text-left'}, '방법'),
+                    React.createElement('th', {className:'p-3 text-left'}, '시간/온도'),
+                    React.createElement('th', {className:'p-3 text-left'}, '내부온도/기준'),
+                    React.createElement('th', {className:'p-3 text-left'}, '보관/팁'),
+                  ])),
+                  
+                  React.createElement('tbody', {key:'tb'}, [
+                    {item:'닭가슴살(구이)', how:'소금 0.8%, 후추, 올리브오일 5ml; 팬 중불→양면 색, 뚜껑 덮어 여열', time:'팬 7–9분(150–180g)', core:'최소 74℃(완전 조리)', tip:'즉시 식힘→3–4일 냉장, 나머지 냉동'},
+                    {item:'닭가슴살(에어프/오븐)', how:'올리브오일 5ml, 소금·후추; 두께 균일화', time:'에어프 180℃ 10–13분(+뒤집고 3분) / 오븐 200℃ 12–15분', core:'최소 74℃', tip:'마리네이드: 레몬 10ml + 요거트 40g'},
+                    {item:'두부 지짐', how:'두부 1.5cm, 키친타월로 수분 제거; 오일 5ml로 겉면 노릇', time:'중불 6–8분', core:'—', tip:'오픈 후 3–4일 내 사용'},
+                    {item:'단호박/고구마 구이', how:'1.5cm 슬라이스, 오일 5ml, 소금 한꼬집', time:'에어프 180℃ 12–15분 / 오븐 200℃ 15–20분', core:'—', tip:'샐러드 토핑 2–3일'},
+                    {item:'버섯 구이', how:'물기 닦고 큰 조각 유지→강불 갈색화', time:'강불 5–7분', core:'—', tip:'소금은 마지막에'},
+                    {item:'연어(사시미)', how:'급속냉동 사시미용만 사용 · 냉장 해동 0–4℃ 8–12h', time:'—', core:'개봉 당일 섭취(남으면 익일 점심까지)', tip:'도마/칼 분리, 실온 방치 금지'},
+                    {item:'연어(구이)', how:'소금 0.8%, 후추, 레몬; 껍질부터 팬', time:'팬 6–8분(150–180g) / 오븐 200℃ 10–12분', core:'중앙 50–55℃(촉촉)', tip:'남은 조리분은 다음날 점심'},
+                  ].map((r,i)=> React.createElement('tr', {key:i, className:'border-t border-zinc-800/60'}, [
+                    React.createElement('td', {className:'p-3 align-top'}, r.item),
+                    React.createElement('td', {className:'p-3 align-top'}, r.how),
+                    React.createElement('td', {className:'p-3 align-top'}, r.time),
+                    React.createElement('td', {className:'p-3 align-top'}, r.core),
+                    React.createElement('td', {className:'p-3 align-top text-zinc-400'}, r.tip),
+                  ])))
+                ]))
+            ]),
+
+            React.createElement('footer', {key:'ft', className:'text-xs text-zinc-400 pt-6 pb-10'},
+              React.createElement('p', null, '· 본 가이드는 개인 목표(근성장, 건선/탈모 고려)와 16:8 간헐적 단식(옵션 C)에 맞춘 참고용입니다. 알레르기/질환/약물 복용 시 전문가와 상담하세요.')
+            )
+        ]);
+    }
+
+    createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
+</body>
+</html>
