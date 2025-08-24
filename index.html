@@ -189,6 +189,23 @@
         return () => window.removeEventListener('beforeprint', onBeforePrint);
       }, []);
 
+      // UI 상태 로컬 저장/복원
+      useEffect(()=>{
+        try{
+          const saved = JSON.parse(localStorage.getItem('uiState')||'null');
+          if(saved && typeof saved === 'object'){
+            if(saved.week) setWeek(saved.week);
+            if(saved.cat) setCat(saved.cat);
+            if(saved.search) setSearch(saved.search);
+            if(saved.collapsed) setCollapsed(prev=>({...prev, ...saved.collapsed}));
+          }
+        }catch{}
+      }, []);
+      useEffect(()=>{
+        const payload = { week, cat, search, collapsed };
+        try{ localStorage.setItem('uiState', JSON.stringify(payload)); }catch{}
+      }, [week, cat, search, collapsed]);
+
       return React.createElement('div', {className:'min-h-screen'}, [
         React.createElement('header', {key:'hdr', className:'sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-zinc-900/70 border-b border-zinc-800'},
           React.createElement('div', {className:'mx-auto max-w-6xl px-4 py-3 flex items-center gap-3'}, [
